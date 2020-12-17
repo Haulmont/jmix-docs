@@ -1,3 +1,6 @@
+import org.yaml.snakeyaml.Yaml
+import org.ajoberstar.grgit.Grgit
+
 buildscript {
     repositories {
         if (rootProject.hasProperty('jmixRepoUrl')) {
@@ -22,6 +25,8 @@ buildscript {
     }
     dependencies {
         classpath("io.jmix.gradle:jmix-gradle-plugin:0.2.0")
+        classpath("org.ajoberstar.grgit:grgit-core:4.1.0")
+        classpath("org.yaml:snakeyaml:1.27")
     }
 }
 
@@ -71,4 +76,44 @@ subprojects {
     test {
         useJUnitPlatform()
     }
+}
+
+task addFrontendApiDocs {
+    doLast {
+        final tempDir = '_temp'
+        def repoUrl = 'https://github.com/haulmont/jmix-frontend.git';
+
+        //noinspection GroovyAccessibility,GroovyAssignabilityCheck
+        def grgit = Grgit.clone(dir: tempDir, uri: repoUrl)
+
+        getBranchNames(repoUrl).each {
+            grgit.checkout(branch: "origin/${it}")
+            def version = getFrontendUiVersion(tempDir)
+            File src = new File("${tempDir}/docs-src/api-reference")
+            File dest = new File("build/site/cuba-frontend-docs/${version}/api-reference/")
+            copy {
+                from src
+                into dest
+            }
+        }
+
+        delete tempDir
+        grgit.close()
+    }
+}
+
+static List<String> getBranchNames(repoUrl) {
+    def playbook = new Yaml().load(
+            new File('antora-playbook.yml').newInputStream()
+    )
+    def frontendRepo = playbook.content.sources.find { it.url == repoUrl }
+    def branches = frontendRepo.branches
+    return (branches instanceof List) ? branches : [branches]
+}
+
+static String getFrontendUiVersion(tempDir) {
+    def antoraYml = new Yaml().load(
+            new File("${tempDir}/docs-src/doc-component-repo/antora.yml").newInputStream()
+    )
+    return antoraYml.version
 }

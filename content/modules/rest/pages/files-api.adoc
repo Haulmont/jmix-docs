@@ -88,7 +88,9 @@ Content-Type: image/jpeg // <2>
 
 == Downloading Files
 
-Files that are already uploaded in your Jmix application, can also be downloaded or displayed. For this you should use the Downloading Files endpoint: `/files?fileRef=:fileRef` via HTTP `GET`. The API returns `200 - OK` if the file was found together with the file binary content as part of the HTTP body. Otherwise `404 - Not Found` is returned.
+Files that are already uploaded in your Jmix application, can also be downloaded or displayed.
+
+For this you should use the Downloading Files endpoint: `/files?fileRef=:fileRef` via HTTP `GET`. The API returns `200 - OK` if the file exists together with the file binary content as part of the HTTP body. Otherwise, `404 - Not Found` is returned.
 
 In the following example the previously uploaded file is downloaded via the API:
 
@@ -100,6 +102,15 @@ GET http://localhost:8080/rest
             ?fileRef=fs://2021/03/12/2266c97c-cf23-c202-481d-04d972e185b4.jpg?name=cat-via-direct-request.jpg // <1>
 ----
 <1> `fs://2021/03/12/2266c97c-cf23-c202-481d-04d972e185b4.jpg?name=cat-via-direct-request.jpg` identifies the file by its reference.
+
+[NOTE]
+====
+The `fileRef` parameter should always be URL encoded in order to prevent any issues special characters. So the actual URL from above should look like this when requested from the API:
+
+`fileRef=fs%3A%2F%2F2021%2F03%2F12%2F2266c97c-cf23-c202-481d-04d972e185b4.jpg%3Fname%3Dcat-via-direct-request.jpg`
+====
+
+In case the file exists, the response will contain the file like below:
 
 [source, http request]
 .Response: 200 - OK

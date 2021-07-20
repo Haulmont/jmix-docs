@@ -2,7 +2,11 @@
 
 The Entities API also allows you to update already existing entities through the endpoint: `/entities/:entityName/:entityId` with the HTTP method `PUT`.
 
+== Update an Entity
+
 When the entity is updated successfully, the HTTP response status code `200 - OK` is returned. By default, a JSON metadata representation of the entity is returned mainly containing the `id` attribute for further reference.
+
+Here is an example of how to update an entity:
 
 [source, http request]
 .Create Customer Request
@@ -16,7 +20,6 @@ PUT http://localhost:8080/rest
   name: "Updated Name"
 }
 ----
-
 
 [source, json]
 .Response: 200 - OK
@@ -291,6 +294,46 @@ In the example from above when the order line for `Cotek Battery Charger (55b925
 
 ====
 
+
+== Security Constraints for Association/Composition
+
+As we learned above, the Update Entity endpoint will _replace_ the existing association/composition collection with what is part of the request. For every entity reference that is not part of the request, the reference will be removed. Moreover, the entity that has been referenced before _will be deleted_ from the application as well.
+
+Having that in mind, let's see how this situation behaves when Jmix Row-level Security is active for an entity:
+
+Assuming you load an `Order` instance together with the nested collection of `OrderLine` instances.
+
+There are security constraints that filter out some `OrderLine` instances, so you don't load them and don't know they exist. Say `line5` is not loaded by the client but exists in the database. If you update the Order and remove `line2` from the order lines, there are two outcomes:
+
+* If the constraints have not been changed since you loaded the entities, the framework restores the filtered `line5` instance in the collection and deletes only `line2`, which is the correct behavior.
+* If the constraints have been changed in a way that `line5` is now available to you, the framework cannot restore the information about filtered collection elements correctly. As a result, both `line2` and `line5` will be deleted.
+
+You can eliminate possible data loss by sending a special system attribute in the JSON representing your entities. This attribute is called `__securityToken` and automatically included in resulting JSON if the `jmix.core.entitySerializationTokenRequired` application property is set to `true`.
+
+Once you receive this `__securityToken` as part of the load response of the Entity, you can pass the value on to the Update Entity request. Here is an example of entity JSON including security token:
+
+[source, json]
+.Request with Security Token
+----
+{
+  "id": "fa430b56-ceb2-150f-6a85-12c691908bd1",
+  "lines": [
+    {
+      "id": "82e6e6d2-be97-c81c-c58d-5e2760ae095a",
+      "description": "Item 1"
+    },
+    {
+      "id": "988a8cb5-d61a-e493-c401-f717dd9a2d66",
+      "description": "Item 2"
+    }
+  ],
+  "__securityToken": "0NXc6bQh+vZuXE4Fsk4mJX4QnhS3lOBfxzUniltchpxPfi1rZ5htEmekfV60sbEuWUykbDoY+rCxdhzORaYQNQ==" // <1>
+}
+----
+<1> The Security Token is the value that has been previously received by the Load Entities API.
+
+The `__securityToken` attribute contains encoded identifiers of filtered instances, so the framework can always restore the required information regardless of changes in constraints.
+
 == Partial Updates
 
 It is possible to only send in the attributes that should be changed. In this case, all other attributes of the entity will stay untouched.
@@ -328,7 +371,7 @@ PUT http://localhost:8080
 
 == Bulk Update
 
-The Update-Entity API also allows you to update multiple entities within one request. For this the JSON request body should contain an array of JSON objects representing each entity.
+The Update-Entity API also allows you to update multiple entities within one request. For this, the JSON request body should contain an array of JSON objects representing each entity.
 
 [source, http request]
 .Bulk Update Request

@@ -3,6 +3,8 @@
 
 The Entities API lets you create entities by performing a `POST` request against the `/entities/:entityName` endpoint.
 
+== Create an Entity
+
 The request body contains a JSON object with the attributes of the entity.
 
 NOTE: Attributes from xref:data-model:entities.adoc#traits[Entity Traits] like `id` or `createdBy` should not be part of the request. Those attributes are automatically added by Jmix while storing the entity.

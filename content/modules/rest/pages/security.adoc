@@ -15,6 +15,3 @@ For security reasons, browsers don't allow Javascript network calls to resources
 By default, all CORS requests to the REST API are allowed. To restrict the origins list you can define the xref:configuration.adoc#jmix.rest.allowedOrigins[allowedOrigins] application property.
 
 For further customizations of the CORS configuration, see https://docs.spring.io/spring-security/site/docs/current/reference/html5/#cors[Spring Security Documentation] on CORS.
-
-== Security Constraints for Collection Attributes
-TIP: https://doc.cuba-platform.com/restapi-7.2/#rest_api_v2_security_constraints

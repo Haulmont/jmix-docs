@@ -2,6 +2,8 @@
 
 The Entities API finally allows you to delete entities that should be removed from the application. The corresponding endpoint is once again: `/entities/:entityName/:entityId` using the HTTP method `DELETE`.
 
+== Delete an Entity
+
 The following example removes a previously created Customer:
 
 [source, http request]
